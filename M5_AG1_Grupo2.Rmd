@@ -1,0 +1,78 @@
+---
+title: "M5_AG1_MODELO LINEAL GENERALIZADOS. INFERENCIA"
+author: "Jose Godoy & Bryan Casanova"
+date: "2022-10-17"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Lectura de datos
+
+```{r}
+data <- read.csv("https://www-eio.upc.edu/~pau/cms/rdata/csv/COUNT/affairs.csv")
+
+#Remove index
+data <- data[, -1]
+
+library(pander)
+pander(summary(data))
+```
+### Ejercicio 1
+
+Para poder identificar cuales son las variables que tienen mayor impacto en la infediabilidad se desarrolla una regresión lineal, donde el estimador de cada variable ayudará a poder el impacto en el modelo
+
+```{r}
+formula <- as.formula("naffairs ~ .")
+
+model_glm <- glm(formula, data = data)
+
+
+pander(model_glm)
+```
+Como era de esperarse, los matrimonios que son infelices o muy infelices son propensos a caer en una infeabilidad.
+También hay un fuerte impacto en las personas que son anti-religioesas.
+
+A medida que pasan los años de matrimonio, mayor es la probabilidad de infeabilidad.
+
+
+### Ejercicio 2
+
+```{r}
+
+data_binary <- data
+
+data$naffairs <- ifelse(data$naffairs>0, 1, 0)
+
+model_glm <- glm(formula, data = data)
+
+
+pander(model_glm)
+
+```
+
+Al hacer esa modificación hay un cambio en los estimadores de las variables. Pero al mismo tiempo, las variables que tienen mayor impacto siguen siendo las mismas.
+
+### Ejercicio 3
+
+La variable `yrsmarr` es una descomposición de una variable general.
+Al ser una descomposiciión generada por intervalos, esta variable que era continua se está comportando como una variable categorica.
+Lo recomendado sería trabajar con una unica columna que indique la cantidad de años casados.
+
+Por otro lado, al tener 6 cateogrías de esta variable (y que sea binarias) permite borrar una de ellas, dado que genera rebundancia.
+
+### Ejercicio 4
+
+```{r}
+formula <- as.formula("naffairs ~ yrsmarr5 + yrsmarr6 + notrel + kids")
+
+model_4 <- glm(formula, data = data)
+
+pander(model_4)
+```
+```{r}
+predict()
+```
+
