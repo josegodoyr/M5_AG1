@@ -7,6 +7,7 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 ```
 
 ### Lectura de datos
@@ -22,29 +23,42 @@ pander(summary(data))
 ```
 ### Ejercicio 1
 
-Para poder identificar cuales son las variables que tienen mayor impacto en la infediabilidad se desarrolla una regresión lineal, donde el estimador de cada variable ayudará a poder el impacto en el modelo
+Para poder identificar cuales son las variables que tienen mayor impacto en la incredibilidad se desarrolla una regresión lineal, donde el estimador de cada variable ayudará a poder el impacto en el modelo
+
+
+Antes de hacer un modelo, verificaremos utiliznado `Stepwise` para poder ver cuales con las variables a considerar
 
 ```{r}
-formula <- as.formula("naffairs ~ .")
+step_wise <- step(glm(formula = 'naffairs ~ .', data = data), trace = FALSE)
 
-model_glm <- glm(formula, data = data)
+pander(summary(step_wise))
+```
+
+
+```{r}
+
+formula <- step_wise$formula
+
+data$naffairs <- ifelse(data$naffairs>0, 1, 0)
+
+model_glm <- glm(formula, data = data, family = binomial)
 
 
 pander(model_glm)
+
 ```
-Como era de esperarse, los matrimonios que son infelices o muy infelices son propensos a caer en una infeabilidad.
-También hay un fuerte impacto en las personas que son anti-religioesas.
+Como era de esperarse, los matrimonios que son infelices o muy infelices son propensos a caer en una inefabilidad.
+También hay un fuerte impacto en las personas que son anti-religiosas.
 
-A medida que pasan los años de matrimonio, mayor es la probabilidad de infeabilidad.
+A medida que pasan los años de matrimonio, mayor es la probabilidad de inefabilidad.
 
+ 
 
 ### Ejercicio 2
 
 ```{r}
 
 data_binary <- data
-
-data$naffairs <- ifelse(data$naffairs>0, 1, 0)
 
 model_glm <- glm(formula, data = data)
 
@@ -66,13 +80,28 @@ Por otro lado, al tener 6 cateogrías de esta variable (y que sea binarias) perm
 ### Ejercicio 4
 
 ```{r}
-formula <- as.formula("naffairs ~ yrsmarr5 + yrsmarr6 + notrel + kids")
+new_data <- data[, c("naffairs" , "kids", "antirel",  "notrel" ,   "slghtrel", "smerel" ,   "vryrel" ,   "yrsmarr1", "yrsmarr2", "yrsmarr3", "yrsmarr4", "yrsmarr5", "yrsmarr6")]
+formula <- as.formula("naffairs ~ .")
 
-model_4 <- glm(formula, data = data)
 
-pander(model_4)
+model_glm_ex4 <- glm(formula, data = new_data)
+
+pander(model_glm_ex4)
 ```
 ```{r}
-predict()
+
+
+data_frame_predict <- data.frame("kids"=0,   "antirel" = 0,  "notrel" = 1,   "slghtrel"= 0, "smerel" = 0,   "vryrel" = 0,   "yrsmarr1" = 0, "yrsmarr2"=0, "yrsmarr3" =0, "yrsmarr4"=0, "yrsmarr5" = 1, "yrsmarr6" = 0)
+
+predict(model_glm_ex4, data_frame_predict)
+
+```
+
+Lo más probable es que dado el perfil del enunciado, es que no ocurra una infidelidad
+
+### Pregunta 5
+
+```{r}
+confint(model_glm_ex4, type="response")
 ```
 
