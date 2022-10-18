@@ -72,10 +72,8 @@ Al hacer esa modificación hay un cambio en los estimadores de las variables. Pe
 ### Ejercicio 3
 
 La variable `yrsmarr` es una descomposición de una variable general.
-Al ser una descomposiciión generada por intervalos, esta variable que era continua se está comportando como una variable categorica.
-Lo recomendado sería trabajar con una unica columna que indique la cantidad de años casados.
-
-Por otro lado, al tener 6 cateogrías de esta variable (y que sea binarias) permite borrar una de ellas, dado que genera rebundancia.
+Al ser una descomposiciión generada por intervalos, esta variable que era continua se está comportando como una variable categorica, por lo que lo recomendado sería trabajar con una unica columna que indique la cantidad de años casados.
+Complementario a lo anterior, al tener 6 columnas para esta variable (siendo binarias y excluyentes entre si) al sumar estas columnas se tiene una combinación lineal del intercepto y por lo tanto el modelo no se puede calcular. 
 
 ### Ejercicio 4
 
@@ -97,7 +95,7 @@ predict(model_glm_ex4, data_frame_predict)
 
 ```
 
-Lo más probable es que dado el perfil del enunciado, es que no ocurra una infidelidad
+Lo más probable es que dado el perfil del enunciado, asumiendo que tiene más de 10 años de casado y menos de 15, es que no ocurra una infidelidad
 
 ### Pregunta 5
 
