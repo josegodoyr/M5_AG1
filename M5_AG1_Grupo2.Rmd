@@ -21,44 +21,46 @@ data <- data[, -1]
 library(pander)
 pander(summary(data))
 ```
+
 ### Ejercicio 1
 
 Para poder identificar cuales son las variables que tienen mayor impacto en la incredibilidad se desarrolla una regresión lineal, donde el estimador de cada variable ayudará a poder el impacto en el modelo
 
-
-Antes de hacer un modelo, verificaremos utiliznado `Stepwise` para poder ver cuales con las variables a considerar
+Antes de hacer un modelo, verificaremos utilizando `Stepwise` para poder ver cuales con las variables a considerar
 
 ```{r}
-step_wise <- step(glm(formula = 'naffairs ~ .', data = data), trace = FALSE)
+data_binary <- data
+
+
+data_binary$naffairs <- ifelse(data$naffairs>0, 1, 0)
+
+step_wise <- step(glm(formula = 'naffairs ~ .', data = data_binary, family = binomial), trace = FALSE)
 
 pander(summary(step_wise))
 ```
-
 
 ```{r}
 
 formula <- step_wise$formula
 
-data$naffairs <- ifelse(data$naffairs>0, 1, 0)
 
-model_glm <- glm(formula, data = data, family = binomial)
+model_glm <- glm(formula, data = data_binary, family = binomial)
 
 
 pander(model_glm)
 
 ```
-Como era de esperarse, los matrimonios que son infelices o muy infelices son propensos a caer en una inefabilidad.
-También hay un fuerte impacto en las personas que son anti-religiosas.
+
+Como era de esperarse, los matrimonios que son infelices o muy infelices son propensos a caer en una inefabilidad. También hay un fuerte impacto en las personas que son anti-religiosas.
 
 A medida que pasan los años de matrimonio, mayor es la probabilidad de inefabilidad.
-
- 
 
 ### Ejercicio 2
 
 ```{r}
+step_wise <- step(glm(formula = 'naffairs ~ .', data = data), trace = FALSE)
+formula <- step_wise$formula
 
-data_binary <- data
 
 model_glm <- glm(formula, data = data)
 
@@ -71,9 +73,7 @@ Al hacer esa modificación hay un cambio en los estimadores de las variables. Pe
 
 ### Ejercicio 3
 
-La variable `yrsmarr` es una descomposición de una variable general.
-Al ser una descomposiciión generada por intervalos, esta variable que era continua se está comportando como una variable categorica, por lo que lo recomendado sería trabajar con una unica columna que indique la cantidad de años casados.
-Complementario a lo anterior, al tener 6 columnas para esta variable (siendo binarias y excluyentes entre si) al sumar estas columnas se tiene una combinación lineal del intercepto y por lo tanto el modelo no se puede calcular. 
+La variable `yrsmarr` es una descomposición de una variable general. Al ser una descomposiciión generada por intervalos, esta variable que era continua se está comportando como una variable categorica, por lo que lo recomendado sería trabajar con una unica columna que indique la cantidad de años casados. Complementario a lo anterior, al tener 6 columnas para esta variable (siendo binarias y excluyentes entre si) al sumar estas columnas se tiene una combinación lineal del intercepto y por lo tanto el modelo no se puede calcular.
 
 ### Ejercicio 4
 
@@ -81,11 +81,11 @@ Complementario a lo anterior, al tener 6 columnas para esta variable (siendo bin
 new_data <- data[, c("naffairs" , "kids", "antirel",  "notrel" ,   "slghtrel", "smerel" ,   "vryrel" ,   "yrsmarr1", "yrsmarr2", "yrsmarr3", "yrsmarr4", "yrsmarr5", "yrsmarr6")]
 formula <- as.formula("naffairs ~ .")
 
-
 model_glm_ex4 <- glm(formula, data = new_data)
 
 pander(model_glm_ex4)
 ```
+
 ```{r}
 
 
@@ -95,11 +95,10 @@ predict(model_glm_ex4, data_frame_predict)
 
 ```
 
-Lo más probable es que dado el perfil del enunciado, asumiendo que tiene más de 10 años de casado y menos de 15, es que no ocurra una infidelidad
+Lo más probable es que dado el perfil del enunciado, asumiendo que tiene más de 10 años de casado y menos de 15, es que ocurra una infidelidad
 
 ### Pregunta 5
 
 ```{r}
 confint(model_glm_ex4, type="response")
 ```
-
