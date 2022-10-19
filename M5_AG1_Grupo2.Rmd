@@ -30,46 +30,28 @@ Antes de hacer un modelo, verificaremos utilizando `Stepwise` para poder ver cua
 
 ```{r}
 data_binary <- data
-
-
 data_binary$naffairs <- ifelse(data$naffairs>0, 1, 0)
-
 step_wise <- step(glm(formula = 'naffairs ~ .', data = data_binary, family = binomial), trace = FALSE)
-
 pander(summary(step_wise))
 ```
 
 ```{r}
-
 formula <- step_wise$formula
-
-
 model_glm <- glm(formula, data = data_binary, family = binomial)
-
-
 pander(model_glm)
-
 ```
 
 Como era de esperarse, los matrimonios que son infelices o muy infelices son propensos a caer en una inefabilidad. También hay un fuerte impacto en las personas que son anti-religiosas.
 
-A medida que pasan los años de matrimonio, mayor es la probabilidad de inefabilidad.
-
 ### Ejercicio 2
 
 ```{r}
-step_wise <- step(glm(formula = 'naffairs ~ .', data = data), trace = FALSE)
-formula <- step_wise$formula
-
-
-model_glm <- glm(formula, data = data)
-
-
-pander(model_glm)
-
+step_wise_2 <- step(glm(formula = 'naffairs ~ .', data = data), trace = FALSE)
+model_glm_2 <- glm(step_wise_2$formula, data = data)
+pander(model_glm_2)
 ```
 
-Al hacer esa modificación hay un cambio en los estimadores de las variables. Pero al mismo tiempo, las variables que tienen mayor impacto siguen siendo las mismas.
+**cambiar**  Al hacer esa modificación hay un cambio en los estimadores de las variables. Pero al mismo tiempo, las variables que tienen mayor impacto siguen siendo las mismas.
 
 ### Ejercicio 3
 
@@ -80,19 +62,13 @@ La variable `yrsmarr` es una descomposición de una variable general. Al ser una
 ```{r}
 new_data <- data[, c("naffairs" , "kids", "antirel",  "notrel" ,   "slghtrel", "smerel" ,   "vryrel" ,   "yrsmarr1", "yrsmarr2", "yrsmarr3", "yrsmarr4", "yrsmarr5", "yrsmarr6")]
 formula <- as.formula("naffairs ~ .")
-
 model_glm_ex4 <- glm(formula, data = new_data)
-
 pander(model_glm_ex4)
 ```
 
 ```{r}
-
-
 data_frame_predict <- data.frame("kids"=0,   "antirel" = 0,  "notrel" = 1,   "slghtrel"= 0, "smerel" = 0,   "vryrel" = 0,   "yrsmarr1" = 0, "yrsmarr2"=0, "yrsmarr3" =0, "yrsmarr4"=0, "yrsmarr5" = 1, "yrsmarr6" = 0)
-
 predict(model_glm_ex4, data_frame_predict)
-
 ```
 
 Lo más probable es que dado el perfil del enunciado, asumiendo que tiene más de 10 años de casado y menos de 15, es que ocurra una infidelidad
@@ -102,3 +78,58 @@ Lo más probable es que dado el perfil del enunciado, asumiendo que tiene más d
 ```{r}
 confint(model_glm_ex4, type="response")
 ```
+
+
+## Pregunta 6
+
+hist y qqlot
+
+## Pregunta 7
+
+```{r}
+formula_interaccion <- c("naffairs ~ kids + vryunhap + unhap + avgmarr + hapavg + vryhap + antirel + notrel + 
+            slghtrel + smerel + vryrel + yrsmarr1*kids + yrsmarr2*kids + yrsmarr3*kids + 
+            yrsmarr4*kids + yrsmarr5*kids + yrsmarr6*kids")
+step_wise_7 <- step(glm(formula = formula_interaccion, data = data), trace = FALSE)
+model_glm_7 <- glm(step_wise_7$formula, data = data)
+summary(model_glm_7)
+```
+
+```{r}
+AIC(model_glm_7)<AIC(model_glm_2)
+```
+
+Vemos que el modelo considero algunas de las interacciones entre la tenencia de hijos y los años de matrimonio, lo que lo llevó a tener un menor AIC y por lo tanto, tener un mejor ajuste.
+
+# Pregunta 8
+
+Dado que en el modelo anterior solo quedaron algunas interacciones entre la tenencia de hijos y años de matrimonio, crearemos un nuevo modelo que considere solo estas interacciones
+
+```{r}
+formula_interaccion_8 <- c("naffairs ~ yrsmarr1*kids + yrsmarr2*kids + yrsmarr3*kids + 
+            yrsmarr4*kids + yrsmarr5*kids + yrsmarr6*kids")
+model_glm_7 <- glm(formula_interaccion_8, data = data)
+summary(model_glm_7)
+```
+
+En este caso, la beta de kids de manera independiente, es negativa para kids1, lo que quiere decir que, manteniendo el resto de las variables estable, para una pareja que tiene hijos el número de infidelidades en el último año disminuye en 2.5 veces. Al mismo tiempo, se muestra que al analizar las interacciones entre estas variables, vemos que para todos los años de matrimonio (salvo sobre 15 años en que no hay datos suficientes) hay un aumento en el número de infidelidades al tener hijo. 
+
+# Pregunta 9 
+
+```{r}
+library(dplyr)
+data %>% 
+  mutate(yrsmarr1 = ifelse(yrsmarr1>0, 1,0),
+         yrsmarr2 = ifelse(yrsmarr2>0, 2,0),
+         yrsmarr3 = ifelse(yrsmarr3>0, 5,0),
+         yrsmarr4 = ifelse(yrsmarr4>0, 8,0),
+         yrsmarr5 = ifelse(yrsmarr5>0, 12,0),
+         yrsmarr6 = ifelse(yrsmarr6>0, 18,0),
+         yrsmarr = yrsmarr1 + yrsmarr2 + yrsmarr3 + yrsmarr4 + yrsmarr5 + yrsmarr6,
+         yrsmarrsquared = yrsmarr**2) %>% 
+  select(-yrsmarr1, -yrsmarr2, -yrsmarr3, -yrsmarr4, -yrsmarr5, - yrsmarr6) %>% 
+  group_by(yrsmarr, yrsmarrsquared) %>% 
+  summarize(Media = mean(naffairs))
+```
+
+Al considerar una cantidad de años de matrimonio dentro del rango para cada categoría y luego calcular el promedio de infidelidades para cada uno de ellos vemos que el único periodo en que disminuyen las infidelidades es desde un año hasta los cuatro años de matrimonio.
